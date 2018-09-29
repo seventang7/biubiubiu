@@ -1,0 +1,23 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="biubiubiu">
+    <output-path>$PROJECT_DIR$/out/artifacts/biubiubiu</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="cn.tangjiabin.biubiubiu.Main" />
+        <option name="description" value="" />
+        <option name="height" value="600" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="nativeBundle" value="image" />
+        <option name="title" value="biubiubiu" />
+        <option name="vendor" value="1.0" />
+        <option name="version" value="1.0" />
+        <option name="width" value="400" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="biubiubiu.jar">
+        <element id="module-output" name="biubiubiu" />
+      </element>
+    </root>
+  </artifact>
+</component>
