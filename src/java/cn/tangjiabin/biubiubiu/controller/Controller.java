@@ -7,18 +7,18 @@ import cn.tangjiabin.biubiubiu.util.ThreadPool;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.ResourceBundle;
+import java.util.*;
 
 
 /**
@@ -34,6 +34,21 @@ public class Controller implements Initializable {
      * 窗体
      */
     private Stage stage;
+
+    /**
+     * 分数图标
+     */
+    private ImageView fractionImageView;
+
+    /**
+     * 分数
+     */
+    private int fraction;
+
+    /**
+     * 分数Label
+     */
+    private Label fractionLabel;
 
     /**
      * 背景图
@@ -94,6 +109,7 @@ public class Controller implements Initializable {
      * 子弹密度
      */
     private int bulletDensity = 500;
+
     /**
      * 子弹移动速度
      */
@@ -142,7 +158,7 @@ public class Controller implements Initializable {
         stage.addEventHandler(KeyEvent.KEY_PRESSED, this::keyMonitor);
 
         //开始按钮监听
-        startImageView.addEventHandler(MouseEvent.MOUSE_CLICKED,event -> startGame());
+        startImageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> startGame());
 
 
     }
@@ -164,11 +180,13 @@ public class Controller implements Initializable {
 
         collision = true;
 
+        fraction = 0;
+
         //加载子弹
-        ThreadPool.getInstance().execute(this::zidanLoad);
+        ThreadPool.getInstance().execute(this::bulletLoad);
 
         //子弹监听
-        ThreadPool.getInstance().execute(this::zidanMonitor);
+        ThreadPool.getInstance().execute(this::bulletMonitor);
 
         //加载敌机
         ThreadPool.getInstance().execute(this::enemyLoad);
@@ -178,8 +196,10 @@ public class Controller implements Initializable {
 
         //碰撞检测
         ThreadPool.getInstance().execute(this::collisionDetection);
-    }
 
+        //分数监听
+        ThreadPool.getInstance().execute(this::scoreMonitor);
+    }
 
     /**
      * 加载图片文件
@@ -205,7 +225,7 @@ public class Controller implements Initializable {
 
         //加载子弹图片
         Image bulletImage = new Image("/img/zidan.png");
-        bulletImageViewList = new ArrayList<>();
+        bulletImageViewList = Collections.synchronizedList(new ArrayList<>());
         ImageView bulletImageView;
         Bullet bullet;
         for (int i = 0; i < bulletNumber; i++) {
@@ -223,7 +243,7 @@ public class Controller implements Initializable {
         }
 
         //加载敌机图片
-        List<String> imgList = new ArrayList<>();
+        List<String> imgList = Collections.synchronizedList(new ArrayList<>());
         imgList.add("/img/enemy1.png");
         imgList.add("/img/enemy2.png");
         imgList.add("/img/enemy3.png");
@@ -231,7 +251,7 @@ public class Controller implements Initializable {
         imgList.add("/img/enemy5.png");
         imgList.add("/img/enemy6.png");
 
-        enemyViewList = new ArrayList<>();
+        enemyViewList = Collections.synchronizedList(new ArrayList<>());
         Enemy enemy;
         ImageView enemyView;
 
@@ -272,6 +292,25 @@ public class Controller implements Initializable {
         gameOverImageView.setFitWidth(160);
         gameOverImageView.setLayoutY(260);
         gameOverImageView.setLayoutX(120);
+
+        //加载分数图标
+        Image fractionImage = new Image("/img/start.PNG");
+        fractionImageView = new ImageView(fractionImage);
+        fractionImageView.setFitWidth(30);
+        fractionImageView.setFitHeight(30);
+        fractionImageView.setLayoutX(10);
+        fractionImageView.setLayoutY(10);
+
+        //加载分数标签
+        fractionLabel = new Label();
+        fraction = 0;
+        fractionLabel.setText(String.valueOf(fraction));
+        fractionLabel.setFont(new Font("Arial", 25));
+        fractionLabel.setLayoutX(60);
+        fractionLabel.setLayoutY(10);
+        fractionLabel.setTextFill(Color.WHITE);
+        gamePanel.getChildren().add(1, fractionLabel);
+        gamePanel.getChildren().add(fractionImageView);
 
     }
 
@@ -338,7 +377,7 @@ public class Controller implements Initializable {
     /**
      * 加载子弹
      */
-    private void zidanLoad() {
+    private void bulletLoad() {
 
         while (bulletLoad) {
 
@@ -364,7 +403,7 @@ public class Controller implements Initializable {
     /**
      * 子弹运行监测
      */
-    private void zidanMonitor() {
+    private void bulletMonitor() {
         while (bulletLoad) {
 
             for (Bullet bullet : bulletImageViewList) {
@@ -432,7 +471,7 @@ public class Controller implements Initializable {
 
                 if (enemy.getEnemyState() == 1) {
                     if (enemyImageView.getLayoutY() < 550) {
-                        Platform.runLater(() -> enemyImageView.setLayoutY(enemyImageView.getLayoutY() + 1));
+                        Platform.runLater(() -> enemyImageView.setLayoutY(enemyImageView.getLayoutY() + 1.5));
                     } else {
                         enemy.setEnemyState(0);
                         Platform.runLater(() -> gamePanel.getChildren().remove(enemyImageView));
@@ -497,6 +536,10 @@ public class Controller implements Initializable {
 
                                 enemy.setEnemyState(0);
                                 Platform.runLater(() -> gamePanel.getChildren().remove(enemyView));
+
+                                //添加分数
+                                fraction++;
+                                Platform.runLater(() -> fractionLabel.setText(String.valueOf(fraction)));
 
                                 //半秒后移除爆炸效果
                                 ThreadPool.getInstance().execute(() -> {
@@ -577,5 +620,26 @@ public class Controller implements Initializable {
 
     }
 
+    /**
+     * 分数监听
+     */
+    private void scoreMonitor() {
 
+        int grade = 10;
+
+        while (true){
+
+            if(fraction > grade){
+                grade = grade * 2;
+                enemySpeed--;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
 }
