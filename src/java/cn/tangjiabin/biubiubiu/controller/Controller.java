@@ -562,8 +562,10 @@ public class Controller implements Initializable {
 
                         double layoutY1 = aircraftImageView.getLayoutY();
                         double layoutY2 = aircraftImageView.getLayoutY() + 40;
+                        double layoutY3 = aircraftImageView.getLayoutY() + 20;
                         double layoutX1 = aircraftImageView.getLayoutX();
                         double layoutX2 = aircraftImageView.getLayoutX() + 70;
+                        double layoutX3 = aircraftImageView.getLayoutX() + 35;
 
                         //左上点
                         boolean luh = height <= layoutY1 && layoutY1 <= height1;
@@ -581,6 +583,10 @@ public class Controller implements Initializable {
                         boolean rlh = height <= layoutY2 && layoutY2 <= height1;
                         boolean rlw = width <= layoutX2 && layoutX2 <= width1;
 
+                        //中间点
+                        boolean mh = height <= layoutY3 && layoutY3 <= height1;
+                        boolean mw = width <= layoutX3 && layoutX3 <= width1;
+
                         boolean upperLeft = luh && luw;
 
                         boolean lowerLeft = llh && llw;
@@ -589,7 +595,9 @@ public class Controller implements Initializable {
 
                         boolean lowerRight = rlh && rlw;
 
-                        if (upperLeft || lowerLeft || upperRight || lowerRight) {
+                        boolean middle = mh && mw;
+
+                        if (upperLeft || lowerLeft || upperRight || lowerRight || middle) {
                             bulletLoad = false;
                             enemyLoad = false;
                             keyMonitor = false;
@@ -627,9 +635,9 @@ public class Controller implements Initializable {
 
         int grade = 10;
 
-        while (true){
+        while (true) {
 
-            if(fraction > grade){
+            if (fraction > grade) {
                 grade = grade * 2;
                 enemySpeed--;
             }
